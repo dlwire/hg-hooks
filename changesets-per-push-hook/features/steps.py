@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from lettuce import *
 from os import makedirs
+from os import path
 from shutil import rmtree
 from subprocess import call
 from subprocess import Popen
@@ -34,22 +35,25 @@ def and_the_changset_limiting_hook(step):
 @step(u'a local clone')
 def and_a_local_clone(step):
     call(['hg', 'clone', 'http://localhost:8000', 'local-repo'], stdout=PIPE)
-    #while call(['hg', 'clone', 'http://localhost:8000', 'local-repo']) is not 0: 
-    #    pass
 
 @step(u'I set the changesets per push limit to (\d)')
-def when_i_set_changesets_per_push_limit_to_2(step):
-    assert False, 'This step must be implemented'
+def when_i_set_changesets_per_push_limit(step, changeset_limit):
+    pass
     
 @step(u'I try to push (\d) changesets to the web-served repository')
-def and_i_try_to_push_3_changesets_to_the_web_served_repository(step):
-    assert False, 'This step must be implemented'
+def and_i_try_to_push_to_the_web_served_repository(step, changeset_count):
+    call(['touch', 'temp'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'add', 'temp'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'commit', '-m"message"', '-u"user"'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'push'], cwd='local-repo', stdout=PIPE)
    
 @step(u'my changesets are not accepted')
 def then_my_changesets_are_not_accepted(step):
-    assert False, 'This step must be implemented'
+    call(['hg', 'update'], cwd='web-served-repo', stdout=PIPE)
+    assert not path.isfile('web-served-repo/temp'), "File web-served-repo/temp exists"
    
 @step(u'my changesets are accepted')
 def then_my_changesets_are_accepted(step):
-    assert False, 'This step must be implemented'
+    call(['hg', 'update'], cwd='web-served-repo', stdout=PIPE)
+    assert path.isfile('web-served-repo/temp'), "File web-served-repo/temp doesn't exist"
 
