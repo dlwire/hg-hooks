@@ -9,7 +9,7 @@ Feature: Limit the number of changesets per push
         And a local clone
 
     Scenario: A push with more changesets than allowed is rejected
-        When I set changesets per push limit to 2
+        When I set the changesets per push limit to 2
         And I try to push 3 changesets to the web-served repository
         Then my changesets are not accepted
 
@@ -19,7 +19,7 @@ Feature: Limit the number of changesets per push
         Then my changesets are accepted
 
     Scenario: A push with less than the changeset limit is accepted
-        When I set the changsets per push limit to 4
+        When I set the changesets per push limit to 4
         And I try to push 3 changesets to the web-served repository
         Then my changesets are accepted
 
