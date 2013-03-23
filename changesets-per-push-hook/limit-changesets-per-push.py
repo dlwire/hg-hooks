@@ -7,6 +7,9 @@ def get_incoming_changesets(repo, node):
     """ Method to get the changesets in the repo coming in this push, stolen from the webs"""
     return [repo[rev] for rev in xrange(repo[node].rev(), len(repo))]
 
+def get_number_of_changesets_on_default(changesets):
+    return len([changeset for changeset in changesets if changeset.branch() is 'default'])
+
 def get_changeset_limit(repo_root_dir):
     with open(repo_root_dir + '/.hg/.limit-changesets-per-push.config') as f:
         return int(f.read())
@@ -22,7 +25,7 @@ def check_changeset_limit(ui, repo, node=None, **kwargs):
     if is_set_to_no_limit(changeset_limit):
         return;
 
-    incoming_changesets = len(get_incoming_changesets(repo, node))
+    incoming_changesets = get_number_of_changesets_on_default(get_incoming_changesets(repo, node))
     if changeset_limit < incoming_changesets:
         raise util.Abort('You tried to push %d changesets, the limit for this repository is %d! Please compress your changes and push again' % (incoming_changesets, changeset_limit))
 

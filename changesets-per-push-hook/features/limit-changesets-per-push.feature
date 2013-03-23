@@ -27,3 +27,8 @@ Feature: Limit the number of changesets per push
         When I set the changesets per push limit to 0
         And I try to push 4 changesets to the web-served repository
         Then my changesets are accepted
+
+    Scenario: The limit only applies to the default branch
+        When I set the changesets per push limit to 1
+        And I try to push 2 changesets to a named branch
+        Then my changesets are accepted
