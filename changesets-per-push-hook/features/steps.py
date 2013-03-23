@@ -17,6 +17,15 @@ def add_a_commit(filename):
     world.files_in_push.append(filename)
     call(['hg', 'add', filename], cwd=world.cloned_repo_name, stdout=PIPE)
     call(['hg', 'commit', '-m"%s"' % filename, '-u"user"'], cwd=world.cloned_repo_name, stdout=PIPE)
+
+def update_to_tip(repository):
+    call(['hg', 'update'], cwd=repository, stdout=PIPE)
+
+def create_a_branch(repository):
+    call(['hg', 'branch', 'named-branch'], cwd=repository, stdout=PIPE)
+
+def push(repository):
+    call(['hg', 'push'], cwd=repository, stdout=PIPE)
       
 @step(u'a web-served repository')
 def given_a_web_served_repository(step):
@@ -60,17 +69,17 @@ def and_i_try_to_push_to_the_web_served_repository(step, changeset_count):
 
 @step(u'And I try to push 2 changesets to a named branch')
 def and_i_try_to_push_2_changesets_to_a_named_branch(step):
-    call(['hg', 'branch', 'named-branch'], cwd=world.cloned_repo_name, stdout=PIPE)
+    create_a_branch(world.cloned_repo_name)
     add_commits(2)
-    call(['hg', 'push'], cwd=world.cloned_repo_name, stdout=PIPE)
+    push(world.cloned_repo_name)
    
 @step(u'my changesets are not accepted')
 def then_my_changesets_are_not_accepted(step):
-    call(['hg', 'update'], cwd=world.web_served_repo_name, stdout=PIPE)
+    update_to_tip(world.web_served_repo_name)
     assert not any(path.isfile(world.web_served_repo_name + '/' + filename) for filename in world.files_in_push), "Some files were present"
    
 @step(u'my changesets are accepted')
 def then_my_changesets_are_accepted(step):
-    call(['hg', 'update'], cwd=world.web_served_repo_name, stdout=PIPE)
+    update_to_tip(world.web_served_repo_name)
     assert all(path.isfile(world.web_served_repo_name + '/' + filename) for filename in world.files_in_push), "Some files were missing"
 
