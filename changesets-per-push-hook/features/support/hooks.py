@@ -1,6 +1,11 @@
 from lettuce import *
 from shutil import rmtree
 
+@before.all
+def setup():
+    world.cloned_repo_name = 'local-repo'
+    world.web_served_repo_name = 'web-served-repo'
+
 @before.each_scenario
 def setup(scenario):
     world.files_in_push = []

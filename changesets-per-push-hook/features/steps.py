@@ -13,22 +13,22 @@ def add_commits(changeset_count):
         add_a_commit('change %d' % i)
 
 def add_a_commit(filename):
-    call(['touch', filename], cwd='local-repo', stdout=PIPE)
+    call(['touch', filename], cwd=world.cloned_repo_name, stdout=PIPE)
     world.files_in_push.append(filename)
-    call(['hg', 'add', filename], cwd='local-repo', stdout=PIPE)
-    call(['hg', 'commit', '-m"%s"' % filename, '-u"user"'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'add', filename], cwd=world.cloned_repo_name, stdout=PIPE)
+    call(['hg', 'commit', '-m"%s"' % filename, '-u"user"'], cwd=world.cloned_repo_name, stdout=PIPE)
       
 @step(u'a web-served repository')
 def given_a_web_served_repository(step):
-    makedirs('web-served-repo')
-    call(['hg', 'init'], cwd='web-served-repo')
+    makedirs(world.web_served_repo_name)
+    call(['hg', 'init'], cwd=world.web_served_repo_name)
 
     with open('web-served-repo/.hg/hgrc', 'w') as f:
         f.write('[web]\n')
         f.write('allow_push=*\n')
         f.write('push_ssl=false\n')
 
-    world.process = Popen(['hg', 'serve', '-a', 'localhost'], cwd='web-served-repo', stdout=PIPE, stderr=PIPE)
+    world.process = Popen(['hg', 'serve', '-a', 'localhost'], cwd=world.web_served_repo_name, stdout=PIPE, stderr=PIPE)
 
     assert world.process is not None, "Unable to start webserver"
 
@@ -40,8 +40,8 @@ def and_the_changset_limiting_hook(step):
         f.write('pretxnchangegroup.limit-changesets-per-push = python:../limit-changesets-per-push.py:check_changeset_limit\n')
 
 @step(u'a local clone')
-def and_a_local_clone(step):
-    while 0 is not call(['hg', 'clone', 'http://localhost:8000', 'local-repo'], stdout=PIPE):
+def and_a_cloned_clone(step):
+    while 0 is not call(['hg', 'clone', 'http://localhost:8000', world.cloned_repo_name], stdout=PIPE):
         pass
 
     assert path.isdir('local-repo/.hg'), "Unable to clone webserver"
@@ -56,21 +56,21 @@ def when_i_set_changesets_per_push_limit(step, changeset_limit):
 @step(u'I try to push (\d) changesets to the web-served repository')
 def and_i_try_to_push_to_the_web_served_repository(step, changeset_count):
     add_commits(changeset_count)
-    call(['hg', 'push'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'push'], cwd=world.cloned_repo_name, stdout=PIPE)
 
 @step(u'And I try to push 2 changesets to a named branch')
 def and_i_try_to_push_2_changesets_to_a_named_branch(step):
-    call(['hg', 'branch', 'named-branch'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'branch', 'named-branch'], cwd=world.cloned_repo_name, stdout=PIPE)
     add_commits(2)
-    call(['hg', 'push'], cwd='local-repo', stdout=PIPE)
+    call(['hg', 'push'], cwd=world.cloned_repo_name, stdout=PIPE)
    
 @step(u'my changesets are not accepted')
 def then_my_changesets_are_not_accepted(step):
-    call(['hg', 'update'], cwd='web-served-repo', stdout=PIPE)
-    assert not any(path.isfile('web-served-repo/' + filename) for filename in world.files_in_push), "Some files were present"
+    call(['hg', 'update'], cwd=world.web_served_repo_name, stdout=PIPE)
+    assert not any(path.isfile(world.web_served_repo_name + '/' + filename) for filename in world.files_in_push), "Some files were present"
    
 @step(u'my changesets are accepted')
 def then_my_changesets_are_accepted(step):
-    call(['hg', 'update'], cwd='web-served-repo', stdout=PIPE)
-    assert all(path.isfile('web-served-repo/' + filename) for filename in world.files_in_push), "Some files were missing"
+    call(['hg', 'update'], cwd=world.web_served_repo_name, stdout=PIPE)
+    assert all(path.isfile(world.web_served_repo_name + '/' + filename) for filename in world.files_in_push), "Some files were missing"
 
