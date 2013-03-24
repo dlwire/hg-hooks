@@ -1,6 +1,3 @@
-import sys
-sys.path.append("/Library/Python/2.7/site-packages/")
-
 from mercurial import util
 
 def get_incoming_changesets(repo, node):
