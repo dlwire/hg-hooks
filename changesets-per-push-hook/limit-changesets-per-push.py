@@ -13,11 +13,29 @@ class Repository(object):
 
     def get_root_directory(self):
         return self.repo.root
-#
-def get_changeset_limit(repo_root_dir):
-    with open(repo_root_dir + '/.hg/.limit-changesets-per-push.config') as f:
-        return int(f.read())
-    return 0
+
+class ChangesetLimitCheck(object):
+    def __init__(self, repository):
+        self.changesets = len(repository.get_changesets_on_branch('default'))
+        self.limit = self.read_changeset_limit(repository.get_root_directory())
+
+    def execute(self):
+        if self.is_set_to_no_limit():
+            return
+
+        if self.limit < self.changesets:
+            raise util.Abort('You tried to push %d changesets\n' \
+                             '  The limit for this repository is %d!\n' \
+                             'Please compress your changes and push again' % (self.changesets, self.limit))
+
+    def read_changeset_limit(self, root):
+        with open(root + '/.hg/.limit-changesets-per-push.config') as f:
+            return int(f.read())
+        return 0
+
+    def is_set_to_no_limit(self):
+        return self.limit is 0
+
 
 def is_set_to_no_limit(changeset_limit):
     return changeset_limit is 0
@@ -26,13 +44,7 @@ def check_changeset_limit(ui, repo, node=None, **kwargs):
     print('Running changeset limit hook')
 
     hg = Repository(repo, node)
-    
-    changeset_limit = get_changeset_limit(hg.get_root_directory())
-    if is_set_to_no_limit(changeset_limit):
-        return;
+    hook = ChangesetLimitCheck(hg)
 
-    incoming_changesets = len(hg.get_changesets_on_branch('default'))
-    if changeset_limit < incoming_changesets:
-        raise util.Abort('You tried to push %d changesets, the limit for this repository is %d! Please compress your changes and push again' % (incoming_changesets, changeset_limit))
-
-
+    hook.execute()
+   
