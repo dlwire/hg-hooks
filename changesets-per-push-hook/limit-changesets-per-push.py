@@ -36,10 +36,6 @@ class ChangesetLimitCheck(object):
     def is_set_to_no_limit(self):
         return self.limit is 0
 
-
-def is_set_to_no_limit(changeset_limit):
-    return changeset_limit is 0
-
 def check_changeset_limit(ui, repo, node=None, **kwargs):
     print('Running changeset limit hook')
 
