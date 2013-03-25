@@ -6,7 +6,7 @@ class Repository(object):
         self.node = node
 
     def get_changesets_on_branch(self, branch):
-        return [changeset for changeset in self.get_changesets() if changeset.branch() is branch]
+        return [changeset for changeset in self.get_changesets() if changeset.branch() == branch]
 
     def get_changesets(self):
         return [self.repo[rev] for rev in xrange(self.repo[self.node].rev(), len(self.repo))]
